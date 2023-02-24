@@ -61,7 +61,7 @@ class EsmExample:
     def model_load_and_train(self):
         access_token = Path('hf_token').read_text()
         num_labels = max(self.train_labels + self.test_labels) + 1  # Add 1 since 0 can be a label
-        model = AutoModelForSequenceClassification.from_pretrained(self.model_checkpoint, num_labels=num_labels, use_auth_token=access_token)
+        model = AutoModelForSequenceClassification.from_pretrained(self.model_checkpoint, num_labels=num_labels)
         model_name = self.model_checkpoint.split("/")[-1]
         batch_size = 8
 
@@ -76,8 +76,7 @@ class EsmExample:
             weight_decay=0.01,
             load_best_model_at_end=True,
             metric_for_best_model="accuracy",
-            push_to_hub=True,
-            hub_token=access_token,
+            push_to_hub=False,
         )
 
         metric = load("accuracy")
