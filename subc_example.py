@@ -88,9 +88,7 @@ class EsmExample:
             predictions = np.argmax(predictions, axis=1)
             return metric.compute(predictions=predictions, references=labels)
 
-        model = model.to(self.device)
-        self.train_dataset = self.train_dataset.to(self.device)
-        self.train_dataset = self.train_dataset.to(self.device)
+        model = model.to("cuda")
 
         trainer = Trainer(
             model,
