@@ -15,7 +15,7 @@ resource:
     # IMPORTANT: limits are not strictly enforced
     # make sure you allocate as much as you will maximally need!
     # Failing to do so may result in your or someone elses job failing.
-    gpu: num=1/task:mode=shared:gmem=43G:j_exclusive=no:gpack=yes
+    # gpu: num=1/task:mode=shared:gmem=43G:j_exclusive=no:gpack=yes
     # If job>43GB, ask for exclusive GPU use
     # this MUST be limited to 2 exclusive use jobs per user!
     # gpu: num=1:mode=exclusive_process:gmem=47G:j_exclusive=yes
@@ -45,7 +45,7 @@ resource:
 
 properties:
     queueName: mid-end-normal
-    jobName: hyp_lr_1
-command: bash hp_tests/mlm.sh
-# command: python filter_fasta.py
+    jobName: tang_run_esm2_finetuning_example
+# command: bash hp_tests/mlm.sh
+command: python subc_example.py
 
