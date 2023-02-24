@@ -9,6 +9,7 @@ from transformers import AutoModelForSequenceClassification, TrainingArguments, 
 from evaluate import load
 import numpy as np
 from pathlib import Path
+import torch
 
 class EsmExample:
     def __init__(self):
@@ -17,6 +18,7 @@ class EsmExample:
         self.test_dataset = None
         self.train_labels = None
         self.test_labels = None
+        self.device = torch.device("cuda")
 
     def data_prep(self):
         print("dataprep")
@@ -85,6 +87,10 @@ class EsmExample:
             predictions, labels = eval_pred
             predictions = np.argmax(predictions, axis=1)
             return metric.compute(predictions=predictions, references=labels)
+
+        model = model.to(self.device)
+        self.train_dataset = self.train_dataset.to(self.device)
+        self.train_dataset = self.train_dataset.to(self.device)
 
         trainer = Trainer(
             model,
