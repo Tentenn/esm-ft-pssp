@@ -15,7 +15,7 @@ resource:
     # IMPORTANT: limits are not strictly enforced
     # make sure you allocate as much as you will maximally need!
     # Failing to do so may result in your or someone elses job failing.
-    # gpu: num=1/task:mode=shared:gmem=43G:j_exclusive=no:gpack=yes
+    gpu: num=1/task:mode=shared:gmem=24G:j_exclusive=no:gpack=yes
     # If job>43GB, ask for exclusive GPU use
     # this MUST be limited to 2 exclusive use jobs per user!
     # gpu: num=1:mode=exclusive_process:gmem=47G:j_exclusive=yes
