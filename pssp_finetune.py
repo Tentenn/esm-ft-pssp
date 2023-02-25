@@ -25,7 +25,7 @@ class PSSPFinetuner:
 
     def run(self):
         train_sequences, train_labels = get_jsonl_data(Path("data/train_filter_no_1000.jsonl"))
-        test_sequences, test_labels = get_jsonl_data(Path("data/val_filter_no_256.jsonl"))
+        test_sequences, test_labels = get_jsonl_data(Path("data/val.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
@@ -71,7 +71,7 @@ class PSSPFinetuner:
         print_trainable_parameters(model)
         # print("success")
 
-        model = model#.to("cuda")
+        model = model.to("cuda")
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
         batch_size = 8
