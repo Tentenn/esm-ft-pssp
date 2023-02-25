@@ -21,12 +21,12 @@ class PSSPFinetuner:
     def __init__(self):
         # self.model_checkpoint = "facebook/esm2_t12_35M_UR50D"
         # self.model_checkpoint = "facebook/esm2_t6_8M_UR50D"
-        self.model_checkpoint = "facebook/esm2_t36_3B_UR50D"
+        self.model_checkpoint = "facebook/esm2_t33_650M_UR50D"
         self.device = torch.device("cuda")
 
     def run(self):
-        train_sequences, train_labels = get_jsonl_data(Path("data/train_filter_no_1000.jsonl"))
-        test_sequences, test_labels = get_jsonl_data(Path("data/val.jsonl"))
+        train_sequences, train_labels = get_jsonl_data(Path("data/train_cut256.jsonl"))
+        test_sequences, test_labels = get_jsonl_data(Path("data/val_filter_no_1000.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
