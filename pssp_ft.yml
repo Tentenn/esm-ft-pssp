@@ -47,5 +47,5 @@ properties:
     queueName: mid-end-normal
     jobName: tang_run_esm2_finetuning_pssp_test
 # command: bash hp_tests/mlm.sh
-command: python pssp_ft.py
+command: python pssp_finetune.py
 
