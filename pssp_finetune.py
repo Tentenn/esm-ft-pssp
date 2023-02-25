@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 import torch
 import re
+import json
 
 """
 Finetune ESM2 on Netsurf2.0 Secondary Structure Dataset
@@ -20,55 +21,9 @@ class PSSPFinetuner:
         self.device = torch.device("cuda")
 
     def run(self):
-        query_url = "https://rest.uniprot.org/uniprotkb/stream?compressed=true&fields=accession%2Csequence%2Cft_strand%2Cft_helix&format=tsv&query=%28%28organism_id%3A9606%29%20AND%20%28reviewed%3Atrue%29%20AND%20%28length%3A%5B80%20TO%20500%5D%29%29"
-        uniprot_request = requests.get(query_url)
-        bio = BytesIO(uniprot_request.content)
-        df = pandas.read_csv(bio, compression='gzip', sep='\t')
-        no_structure_rows = df["Beta strand"].isna() & df["Helix"].isna()
-        df = df[~no_structure_rows]
-        strand_re = r"STRAND\s(\d+)\.\.(\d+)\;"
-        helix_re = r"HELIX\s(\d+)\.\.(\d+)\;"
+        train_sequences, train_labels = get_jsonl_data(Path("data/train.jsonl"))
+        test_sequences, test_labels = get_jsonl_data(Path("data/val.jsonl"))
 
-        re.findall(helix_re, df.iloc[0]["Helix"])
-
-        def build_labels(sequence, strands, helices):
-            # Start with all 0s
-            labels = np.zeros(len(sequence), dtype=np.int64)
-
-            if isinstance(helices, float):  # Indicates missing (NaN)
-                found_helices = []
-            else:
-                found_helices = re.findall(helix_re, helices)
-            for helix_start, helix_end in found_helices:
-                helix_start = int(helix_start) - 1
-                helix_end = int(helix_end)
-                assert helix_end <= len(sequence)
-                labels[helix_start: helix_end] = 1  # Helix category
-
-            if isinstance(strands, float):  # Indicates missing (NaN)
-                found_strands = []
-            else:
-                found_strands = re.findall(strand_re, strands)
-            for strand_start, strand_end in found_strands:
-                strand_start = int(strand_start) - 1
-                strand_end = int(strand_end)
-                assert strand_end <= len(sequence)
-                labels[strand_start: strand_end] = 2  # Strand category
-            return labels
-
-        sequences = []
-        labels = []
-
-        for row_idx, row in df.iterrows():
-            row_labels = build_labels(row["Sequence"], row["Beta strand"], row["Helix"])
-            sequences.append(row["Sequence"])
-            labels.append(row_labels)
-
-        # print(sequences[0])
-        # print(labels[0]) # labels is a list of 0, 1, 2
-
-        train_sequences, test_sequences, train_labels, test_labels = train_test_split(sequences, labels, test_size=0.25,
-                                                                                      shuffle=True)
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
         train_tokenized = tokenizer(train_sequences)
@@ -128,6 +83,25 @@ class PSSPFinetuner:
     def model_load_and_train(self):
         access_token = Path('hf_token').read_text()
         # model = model.to("cuda")
+
+
+
+def get_jsonl_data(jsonlfile: Path):
+    """
+    :param jsonl_path: path to jsonl containing info about id, sequence, labels and mask
+    :return: dict containing sequence, label and resolved mask
+    """
+    CLASS_MAPPING = {"H": 0, "E": 1, "L": 2, "C": 2}
+    with open(jsonlfile) as t:
+        sequences = []
+        labels = []
+        ## Converts the list of dicts (jsonl file) to a single dict with id -> sequence
+        for d in [json.loads(line) for line in t]:
+            sequences.append(d["sequence"])
+            # convert label to classification token
+            labels.append(np.array([CLASS_MAPPING[c] for c in d["label"]]))
+    return sequences, labels
+
 
 
 
