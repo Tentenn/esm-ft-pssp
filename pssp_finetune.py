@@ -72,7 +72,7 @@ class PSSPFinetuner:
         print_trainable_parameters(model)
         # print("success")
 
-        model = model#.to("cuda")
+        model = model.to("cuda")
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
         batch_size = 8
