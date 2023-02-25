@@ -24,7 +24,7 @@ class PSSPFinetuner:
         self.device = torch.device("cuda")
 
     def run(self):
-        train_sequences, train_labels = get_jsonl_data(Path("data/train_filter_no_256.jsonl"))
+        train_sequences, train_labels = get_jsonl_data(Path("data/train_filter_no_1000.jsonl"))
         test_sequences, test_labels = get_jsonl_data(Path("data/val_filter_no_256.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
@@ -41,7 +41,7 @@ class PSSPFinetuner:
         num_labels = 3
         model = AutoModelForTokenClassification.from_pretrained(self.model_checkpoint, num_labels=num_labels)
 
-        # print(model)
+        print(model)
 
         ## applying PEFT
         for param in model.parameters():
@@ -50,7 +50,7 @@ class PSSPFinetuner:
                 # cast the small parameters (e.g. layernorm) to fp32 for stability
                 param.data = param.data.to(torch.float32)
         # model.gradient_checkpointing_enable()  # reduce number of stored activations
-        model.enable_input_require_grads()
+        # model.enable_input_require_grads()
 
         #class CastOutputToFloat(nn.Sequential):
         #    def forward(self, x): return super().forward(x).to(torch.float32)
@@ -62,17 +62,16 @@ class PSSPFinetuner:
         config = LoraConfig(
             r=16,
             lora_alpha=32,
-            target_modules=["dense"],
+            target_modules=["dense", "regression", "key", "value", "query", "classifier"],
             lora_dropout=0.05,
-            bias="none",
-            task_type="TOKEN_CLASSIFICATION"
+            # task_type="TOKEN_CLASSIFICATION"
         )
 
         model = get_peft_model(model, config)
         print_trainable_parameters(model)
         # print("success")
 
-        model = model.to("cuda")
+        model = model#.to("cuda")
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
         batch_size = 8
@@ -90,6 +89,7 @@ class PSSPFinetuner:
             load_best_model_at_end=True,
             metric_for_best_model="accuracy",
             push_to_hub=False,
+            remove_unused_columns=False,
         )
 
         metric = load("accuracy")
