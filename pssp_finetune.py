@@ -19,8 +19,9 @@ Finetune ESM2 on Netsurf2.0 Secondary Structure Dataset
 """
 class PSSPFinetuner:
     def __init__(self):
-        self.model_checkpoint = "facebook/esm2_t12_35M_UR50D"
+        # self.model_checkpoint = "facebook/esm2_t12_35M_UR50D"
         # self.model_checkpoint = "facebook/esm2_t6_8M_UR50D"
+        self.model_checkpoint = "facebook/esm2_t36_3B_UR50D"
         self.device = torch.device("cuda")
 
     def run(self):
