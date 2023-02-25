@@ -86,9 +86,10 @@ class PSSPFinetuner:
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
         batch_size = 8
+        modelname = f"{model_name}-ft-pssp"
 
         args = TrainingArguments(
-            output_dir=f"{model_name}-ft-pssp",
+            output_dir=modelname,
             evaluation_strategy="epoch",
             save_strategy="epoch",
             learning_rate=1e-4,
