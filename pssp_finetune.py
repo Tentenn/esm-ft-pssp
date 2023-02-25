@@ -4,7 +4,6 @@ import pandas
 from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer
 from datasets import Dataset
-from datasets import Dataset
 from transformers import DataCollatorForTokenClassification, TrainingArguments, Trainer, AutoModelForTokenClassification
 from evaluate import load
 import numpy as np
@@ -89,7 +88,7 @@ class PSSPFinetuner:
         batch_size = 8
 
         args = TrainingArguments(
-            f"{model_name}-finetuned-secondary-structure",
+            output_dir=f"{model_name}-ft-pssp",
             evaluation_strategy="epoch",
             save_strategy="epoch",
             learning_rate=1e-4,
