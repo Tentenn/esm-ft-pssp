@@ -26,7 +26,7 @@ class PSSPFinetuner:
 
     def run(self):
         train_sequences, train_labels = get_jsonl_data(Path("data/train_cut256.jsonl"))
-        test_sequences, test_labels = get_jsonl_data(Path("data/val_filter_no_1000.jsonl"))
+        test_sequences, test_labels = get_jsonl_data(Path("data/val.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
@@ -42,7 +42,7 @@ class PSSPFinetuner:
         num_labels = 3
         model = AutoModelForTokenClassification.from_pretrained(self.model_checkpoint, num_labels=num_labels)
 
-        print(model)
+        """print(model)
 
         ## applying PEFT
         for param in model.parameters():
@@ -70,12 +70,12 @@ class PSSPFinetuner:
 
         model = get_peft_model(model, config)
         print_trainable_parameters(model)
-        # print("success")
+        # print("success")"""
 
         model = model.to("cuda")
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
-        batch_size = 8
+        batch_size = 10
         modelname = f"{model_name}-ft-pssp"
 
         args = TrainingArguments(
