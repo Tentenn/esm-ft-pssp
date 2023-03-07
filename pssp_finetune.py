@@ -7,12 +7,13 @@ from datasets import Dataset
 from transformers import DataCollatorForTokenClassification, TrainingArguments, Trainer, AutoModelForTokenClassification
 from evaluate import load
 import numpy as np
-from pathlib import Path
 import torch
+from pathlib import Path
 from torch import nn
 import re
 import json
 from peft import LoraConfig, get_peft_model
+from utils import get_jsonl_data
 
 """
 Finetune ESM2 on Netsurf2.0 Secondary Structure Dataset
@@ -20,13 +21,13 @@ Finetune ESM2 on Netsurf2.0 Secondary Structure Dataset
 class PSSPFinetuner:
     def __init__(self):
         # self.model_checkpoint = "facebook/esm2_t12_35M_UR50D"
-        # self.model_checkpoint = "facebook/esm2_t6_8M_UR50D"
-        self.model_checkpoint = "facebook/esm2_t33_650M_UR50D"
+        self.model_checkpoint = "facebook/esm2_t6_8M_UR50D"
+        # self.model_checkpoint = "facebook/esm2_t33_650M_UR50D"
         self.device = torch.device("cuda")
 
     def run(self):
-        train_sequences, train_labels = get_jsonl_data(Path("data/train_cut256.jsonl"))
-        test_sequences, test_labels = get_jsonl_data(Path("data/val.jsonl"))
+        train_sequences, train_labels, _ = get_jsonl_data(Path("data/10seqs.jsonl"))
+        test_sequences, test_labels, _ = get_jsonl_data(Path("data/val.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
@@ -85,7 +86,7 @@ class PSSPFinetuner:
             learning_rate=1e-4,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            num_train_epochs=3,
+            num_train_epochs=1,
             weight_decay=0.001,
             load_best_model_at_end=True,
             metric_for_best_model="accuracy",
@@ -134,21 +135,6 @@ def print_trainable_parameters(model):
         f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
     )
 
-def get_jsonl_data(jsonlfile: Path):
-    """
-    :param jsonl_path: path to jsonl containing info about id, sequence, labels and mask
-    :return: dict containing sequence, label and resolved mask
-    """
-    CLASS_MAPPING = {"H": 0, "E": 1, "L": 2, "C": 2}
-    with open(jsonlfile) as t:
-        sequences = []
-        labels = []
-        ## Converts the list of dicts (jsonl file) to a single dict with id -> sequence
-        for d in [json.loads(line) for line in t]:
-            sequences.append(d["sequence"])
-            # convert label to classification token
-            labels.append(np.array([CLASS_MAPPING[c] for c in d["label"]]))
-    return sequences, labels
 
 
 
