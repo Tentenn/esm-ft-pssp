@@ -10,7 +10,7 @@ from ESM2PSSPModel import ESM2PSSPModel
 from ConvNet import ConvNet
 import h5py
 
-
+# python make_esm_embeddins.py <jsonl> <max_batch_length> <out_directory>"
 
 #
 try:
