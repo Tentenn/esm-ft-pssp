@@ -47,5 +47,5 @@ properties:
     queueName: mid-end-normal
     jobName: create_embeddings
 # command: bash hp_tests/mlm.sh
-command: python make_esm_embeddings.py "data/train.jsonl" -1 data/embeddings && python make_esm_embeddings.py "data/val.jsonl" -1 data/embeddings && python make_esm_embeddings.py "data/train_filter_no256.jsonl" -1 data/embeddings
+command: python make_esm_embeddings.py data/train.jsonl -1 data/embeddings && python make_esm_embeddings.py data/val.jsonl -1 data/embeddings && python make_esm_embeddings.py data/train_filter_no256.jsonl -1 data/embeddings
 
