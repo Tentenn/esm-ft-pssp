@@ -46,6 +46,6 @@ resource:
 properties:
     queueName: mid-end-normal
     jobName: make_embeddings
-    command: python make_esm_embeddings.py data/train.jsonl -1 data/ 35M && python make_esm_embeddings.py data/val.jsonl -1 data/ 35M && python make_esm_embeddings.py data/train.jsonl -1 data/ 650M && python make_esm_embeddings.py data/val.jsonl -1 data/ 650M
+command: python make_esm_embeddings.py data/train.jsonl -1 data/ 35M && python make_esm_embeddings.py data/val.jsonl -1 data/ 35M && python make_esm_embeddings.py data/train.jsonl -1 data/ 650M && python make_esm_embeddings.py data/val.jsonl -1 data/ 650M
 # command: python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 10 --temb data/train_esm2_t6_8M_UR50D_embeddings.h5 --vemb data/val_esm2_t6_8M_UR50D_embeddings.h5
 
