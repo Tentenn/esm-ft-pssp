@@ -23,11 +23,13 @@ class PSSPFinetuner:
         # self.model_checkpoint = "facebook/esm2_t12_35M_UR50D"
         self.model_checkpoint = "facebook/esm2_t6_8M_UR50D"
         # self.model_checkpoint = "facebook/esm2_t33_650M_UR50D"
-        self.device = torch.device("cuda")
+        ## Determine device
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        print(f"Using {self.device}")
 
     def run(self):
         train_sequences, train_labels, _ = get_jsonl_data(Path("data/10seqs.jsonl"))
-        test_sequences, test_labels, _ = get_jsonl_data(Path("data/val.jsonl"))
+        test_sequences, test_labels, _ = get_jsonl_data(Path("data/casp12.jsonl"))
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
 
@@ -43,7 +45,7 @@ class PSSPFinetuner:
         num_labels = 3
         model = AutoModelForTokenClassification.from_pretrained(self.model_checkpoint, num_labels=num_labels)
 
-        """print(model)
+        print(model)
 
         ## applying PEFT
         for param in model.parameters():
@@ -71,12 +73,12 @@ class PSSPFinetuner:
 
         model = get_peft_model(model, config)
         print_trainable_parameters(model)
-        # print("success")"""
+        # print("success")
 
-        model = model.to("cuda")
+        model = model.to(self.device)
         data_collator = DataCollatorForTokenClassification(tokenizer)
         model_name = self.model_checkpoint.split("/")[-1]
-        batch_size = 10
+        batch_size = 5
         modelname = f"{model_name}-ft-pssp"
 
         args = TrainingArguments(

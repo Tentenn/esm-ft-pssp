@@ -351,7 +351,16 @@ if __name__ == "__main__":
 
     ## Load model
     print("load Model")
-    cnn = ConvNet(in_size=320)
+    if "t6_8M" in args.temb:
+        in_dim = 320
+    elif "t12_35M" in args.temb:
+        in_dim = 480
+    elif "t30_650M" in args.temb:
+        in_dim = 1280
+    else:
+        assert False, "Wrong model type"
+
+    cnn = ConvNet(in_size=in_dim)
     cnn = cnn.to(device)
 
     ## Train and validate (train and validate)
