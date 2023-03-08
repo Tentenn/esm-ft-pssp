@@ -38,7 +38,7 @@ else:
     assert False, "Please specify model used in 4th argument"
 
 # Load Esm Model and Tokenizer
-model = EsmModel.from_pretrained(model_checkpoint, cache_dir="/mnt/projects/tang/models/")
+model = EsmModel.from_pretrained(model_checkpoint, cache_dir="/mnt/project/tang/models/")
 model.eval()
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
