@@ -185,6 +185,11 @@ def train(model: torch.nn.Module,
         # cut out special tokens
         out = out[:, :, 1:-1]
 
+        # truncate labels to max 1024
+        if labels.size()[1] > 1022:
+            # print("need slicing", labels_f.size()[1])
+            labels = labels[:, :1022]
+
         loss = loss_fn(out, labels)
         loss.backward()
 
