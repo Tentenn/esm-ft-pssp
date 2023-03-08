@@ -17,6 +17,7 @@ try:
     file = sys.argv[1]
     max_batch_length = int(sys.argv[2])
     out_directory = sys.argv[3]
+    model_used = sys.argv[4]
 except IndexError:
     file = "data/val_filter_no_256.jsonl"
     # print("using", file)
@@ -24,7 +25,17 @@ except IndexError:
     max_batch_length = 256
     assert False, "Please specify arguments: python make_esm_embeddins.py <jsonl> <max_batch_length> <out_directory>"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-model_checkpoint = "facebook/esm2_t6_8M_UR50D"
+
+if model_used == "8M":
+    model_checkpoint = "facebook/esm2_t6_8M_UR50D"
+elif model_used == "35M":
+    model_checkpoint = "facebook/esm2_t12_35M_UR50D"
+elif model_used == "150M":
+    model_checkpoint = "facebook/esm2_t30_150M_UR50D"
+elif model_used == "650M":
+    model_checkpoint = "facebook/esm2_t33_650M_UR50D"
+else:
+    assert False, "Please specify model used in 4th argument"
 
 # Load Esm Model and Tokenizer
 model = EsmModel.from_pretrained(model_checkpoint)
