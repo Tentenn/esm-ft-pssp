@@ -38,14 +38,15 @@ else:
     assert False, "Please specify model used in 4th argument"
 
 # Load Esm Model and Tokenizer
-model = EsmModel.from_pretrained(model_checkpoint)
+model = EsmModel.from_pretrained(model_checkpoint, cache_dir="/mnt/projects/tang/models/")
 model.eval()
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
 # Fill id -> embeddings dict
 id_to_embedding = dict()
-
+print("Loading Data")
 sequences, labels, protein_ids = get_jsonl_data(Path(file))
+print("Start generating")
 for i, p_id in enumerate(protein_ids):
     if max_batch_length == -1:
         # No padding
