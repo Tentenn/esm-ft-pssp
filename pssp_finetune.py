@@ -135,10 +135,6 @@ def print_trainable_parameters(model):
         f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
     )
 
-
-
-
-
 def main():
     finetuner = PSSPFinetuner()
     finetuner.run()
