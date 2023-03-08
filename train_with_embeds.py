@@ -304,10 +304,10 @@ if __name__ == "__main__":
     parser.add_argument("--lmt", type=str, default="esm", help="Choose language model type: pt5, pbert, esm")
     parser.add_argument("--temb", type=str, help="path for training embeddings", default="data/embeddings/10seqs_esm2_t6_8M_UR50D_embeddings.h5")
     parser.add_argument("--vemb", type=str, help="path for validation embeddings", default="data/embeddings/casp12_esm2_t6_8M_UR50D_embeddings.h5")
-    parser.add_argument("--pname", type=str, help="project name for wandb", default="esm_embeds_test")
-    parser.add_argument("--wname", type=str, help="name of run", default="initial")
-    parser.add_argument("--train_labels", type=str, help="jsonl file", default="data/10seqs.jsonl")
-    parser.add_argument("--val_labels", type=str, help="jsonl file", default="data/casp12.jsonl")
+    parser.add_argument("--pname", type=str, help="project name for wandb", default="esm_embeds")
+    parser.add_argument("--wname", type=str, help="name of run", default="esm_embeds")
+    parser.add_argument("--train_labels", type=str, help="jsonl file", default="data/train.jsonl")
+    parser.add_argument("--val_labels", type=str, help="jsonl file", default="data/val.jsonl")
     args = parser.parse_args()
 
     ## Determine device
