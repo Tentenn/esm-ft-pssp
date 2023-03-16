@@ -461,12 +461,12 @@ if __name__ == "__main__":
         else:
             model_path = "facebook/esm2_t6_8M_UR50D"
             in_dim = 320
-        model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path).to(device)
+        model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
     else:
         assert False, f"Model type not implemented {model_type}"
 
-    model = apply_peft(model)
+    model = apply_peft(model).to(device)
 
 
     ## Data loading
