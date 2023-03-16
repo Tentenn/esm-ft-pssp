@@ -254,7 +254,7 @@ def test(model: torch.nn.Module,
 
         with torch.no_grad():
             out = model(ids)
-            out = torch.narrow(out, 1, 0, 256)
+            # out = torch.narrow(out, 1, 0, 256)
         for batch_idx, out_logits in enumerate(out):
             # Calculate scores for each sequence individually
             # And average over them
@@ -359,17 +359,17 @@ if __name__ == "__main__":
     print("Using", device)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bs", type=int, default=2)
+    parser.add_argument("--bs", type=int, default=10)
     parser.add_argument("--grac", type=int, default=1)
     parser.add_argument("--maxemb", type=int, default=256)
     parser.add_argument("--optim", type=str, default="adam")
     parser.add_argument("--lr", type=float, default=0.0001)
-    parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--model_type", type=str, default="esm-cnn")
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--trainset", type=str, default="10seqs.jsonl")
-    parser.add_argument("--valset", type=str, default="10seqs.jsonl")
+    parser.add_argument("--trainset", type=str, default="train_cut256.jsonl")
+    parser.add_argument("--valset", type=str, default="val_filter_no_1000.jsonl")
     parser.add_argument("--wdnote", type=str)
     parser.add_argument("--trainable", type=int, default=24)
     parser.add_argument("--pn", type=str, default="esm_finetune_manual")
@@ -378,6 +378,7 @@ if __name__ == "__main__":
     parser.add_argument("--msk", type=float, help="randomly mask the sequence", default=0)
     parser.add_argument("--datapath", type=str, help="path to datafolder",
                         default="data/")
+    parser.add_argument("--plm_checkpoint", default="8M")
     args = parser.parse_args()
 
     batch_size = args.bs
@@ -402,8 +403,23 @@ if __name__ == "__main__":
 
     # Choose model
     if model_type == "esm-cnn":
-        model = ESM2PSSPModel(in_dim=320).to(device)
-        tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
+        if args.plm_checkpoint == "8M":
+            model_path = "facebook/esm2_t6_8M_UR50D"
+            in_dim = 320
+        elif args.plm_checkpoint == "35M":
+            model_path = "facebook/esm2_t12_35M_UR50D"
+            in_dim = 480
+        elif args.plm_checkpoint == "150M":
+            model_path = "facebook/esm2_t30_150M_UR50D"
+            in_dim = 640
+        elif args.plm_checkpoint == "650M":
+            in_dim = 1280
+            model_path = "facebook/esm2_t33_650M_UR50D"
+        else:
+            model_path = "facebook/esm2_t6_8M_UR50D"
+            in_dim = 320
+        model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path).to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
     else:
         assert False, f"Model type not implemented {model_type}"
 
@@ -503,8 +519,8 @@ if __name__ == "__main__":
 
     ## Load model
     if model_type == "esm-cnn":
-        model = ESM2PSSPModel().to(device)
-        tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t6_8M_UR50D")
+        model = ESM2PSSPModel(plm_cp=model_path, in_dim=in_dim).to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
     else:
         assert False, f"Model type not implemented {model_type}"
 

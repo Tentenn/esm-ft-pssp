@@ -8,10 +8,10 @@ import torch
 
 
 class ESM2PSSPModel(torch.nn.Module):
-    def __init__(self, dropout=0.25, in_dim=1024, checkpoint="facebook/esm2_t6_8M_UR50D"):
+    def __init__(self, dropout=0.25, in_dim=1024, plm_cp="facebook/esm2_t6_8M_UR50D"):
         super(ESM2PSSPModel, self).__init__()
 
-        self.esm = EsmModel.from_pretrained(checkpoint)
+        self.esm = EsmModel.from_pretrained(plm_cp)
         # self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
         self.elmo_feature_extractor = torch.nn.Sequential(
