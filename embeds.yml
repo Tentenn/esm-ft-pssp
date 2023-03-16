@@ -46,6 +46,6 @@ resource:
 properties:
     queueName: mid-end-normal
     jobName: train_with_esm_embeddings
-command: python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 20 --temb data/train_esm2_t12_35M_UR50D_embeddings.h5 --vemb data/val_esm2_t12_35M_UR50D_embeddings.h5 --wname 35M_embeds && python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 20 --temb data/train_esm2_t6_8M_UR50D_embeddings.h5 --vemb data/val_esm2_t6_8M_UR50D_embeddings.h5 --wname 8M_embeds
-# python make_esm_embeddings.py data/train.jsonl -1 data/ && python make_esm_embeddings.py data/val.jsonl -1 data/ && python make_esm_embeddings.py data/train_filter_no256.jsonl -1 data/
-
+#command: python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 20 --temb data/train_esm2_t12_35M_UR50D_embeddings.h5 --vemb data/val_esm2_t12_35M_UR50D_embeddings.h5 --wname 35M_embeds && python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 20 --temb data/train_esm2_t6_8M_UR50D_embeddings.h5 --vemb data/val_esm2_t6_8M_UR50D_embeddings.h5 --wname 8M_embeds
+#command: python make_esm_embeddings.py data/train.jsonl -1 data/ && python make_esm_embeddings.py data/val.jsonl -1 data/ && python make_esm_embeddings.py data/train_filter_no256.jsonl -1 data/
+command: python train_with_embeds.py --bs 40 --lr 0.0001 --epochs 20 --temb data/train_esm2_t33_650M_UR50D_embeddings.h5 --vemb data/val_esm2_t33_650M_UR50D_embeddings.h5 --wname 650M
