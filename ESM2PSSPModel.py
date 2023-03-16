@@ -12,6 +12,7 @@ class ESM2PSSPModel(torch.nn.Module):
         super(ESM2PSSPModel, self).__init__()
 
         self.esm = EsmModel.from_pretrained(plm_cp)
+        self.config = self.esm.config
         # self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
         self.elmo_feature_extractor = torch.nn.Sequential(

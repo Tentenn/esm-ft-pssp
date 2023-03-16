@@ -343,6 +343,19 @@ def get_dataloader(jsonl_path: str, batch_size: int, device: torch.device,
                         shuffle=True, collate_fn=custom_collate)
     return loader
 
+def print_trainable_parameters(model):
+    """
+    Prints the number of trainable parameters in the model.
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
+    )
 
 def freeze_t5_model(model):
     ## Freezes the t5 component of the t5 model
@@ -353,6 +366,36 @@ def freeze_t5_model(model):
     for layer, param in list(model.named_parameters())[-4:]:
         param.requires_grad = True
 
+def apply_peft(model):
+    ## applying PEFT
+    print(model)
+    for param in model.parameters():
+        param.requires_grad = False  # freeze the model - train adapters later
+        if param.ndim == 1:
+            # cast the small parameters (e.g. layernorm) to fp32 for stability
+            param.data = param.data.to(torch.float32)
+    # model.gradient_checkpointing_enable()  # reduce number of stored activations
+    # model.enable_input_require_grads()
+
+    # class CastOutputToFloat(nn.Sequential):
+    #    def forward(self, x): return super().forward(x).to(torch.float32)
+
+    # model.lm_head = CastOutputToFloat(model.lm_head)
+
+    from peft import LoraConfig, get_peft_model
+
+    config = LoraConfig(
+        r=16,
+        lora_alpha=32,
+        target_modules=["dense", "regression", "key", "value", "query"],
+        lora_dropout=0.05,
+        # task_type="TOKEN_CLASSIFICATION"
+    )
+
+    model = get_peft_model(model, config)
+    print_trainable_parameters(model)
+    # print("success")
+    return model
 
 if __name__ == "__main__":
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -423,6 +466,9 @@ if __name__ == "__main__":
     else:
         assert False, f"Model type not implemented {model_type}"
 
+    model = apply_peft(model)
+
+
     ## Data loading
     train_path = datapath + trainset
     val_path = datapath + valset
@@ -438,34 +484,6 @@ if __name__ == "__main__":
                                 device=device, seed=42,
                                 max_emb_size=2000, tokenizer=tokenizer)
 
-    # Apply freezing
-    if args.trainable <= 0:  ## -1 to freeze whole t5 model
-        print("freeze all layers")
-        freeze_t5_model(model)
-    elif args.trainable == 24:
-        print("No freezing supported for protbert")
-    elif args.trainable > 0:
-        num_trainable_layers = args.trainable
-        trainable_t5_layers_stage1 = [str(integer) for integer in
-                                      list(range(23, 23 - num_trainable_layers, -1))]
-        print("Entering model freezing")
-        for layer, param in model.named_parameters():
-            param.requires_grad = False
-        print("all layers frozen. Unfreezing trainable layers")
-        unfr_c = 0
-
-        # unfreeze desired layers
-        for layer, param in model.named_parameters():
-            lea = [trainable in layer for trainable in trainable_t5_layers_stage1]
-            if sum(lea) >= 1:
-                param.requires_grad = True
-                unfr_c += 1
-                # print(f"unfroze {layer}")
-        # unfreeze CNN
-        for layer, param in list(model.named_parameters())[-4:]:
-            param.requires_grad = True
-            unfr_c += 1
-            # print(f"unfroze {layer}")
 
     # For testing and logging
     train_data = train_loader
