@@ -40,3 +40,15 @@ def load_data(jsonl_path):
     for d in [json.loads(line) for line in t]:
       data_dict[d["id"]] = d["label"], d["resolved"]
   return data_dict
+
+def load_all_data(jsonl_path):
+  """
+  :param jsonl_path: path to jsonl containing info about id, sequence, labels and mask
+  :return: dict containing sequence, label and resolved mask
+  """
+  with open(jsonl_path) as t:
+    data_dict = dict()
+    ## Converts the list of dicts (jsonl file) to a single dict with id -> sequence
+    for d in [json.loads(line) for line in t]:
+      data_dict[d["id"]] = d["sequence"], d["label"], d["resolved"]
+  return data_dict
