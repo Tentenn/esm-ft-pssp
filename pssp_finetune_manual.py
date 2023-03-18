@@ -366,7 +366,7 @@ def freeze_t5_model(model):
     for layer, param in list(model.named_parameters())[-4:]:
         param.requires_grad = True
 
-def apply_peft(model):
+def apply_peft(model, mode="all", lora_dropout=0.05):
     ## applying PEFT
     print(model)
     for param in model.parameters():
@@ -384,11 +384,26 @@ def apply_peft(model):
 
     from peft import LoraConfig, get_peft_model
 
+    if mode == "all":
+        target_modules = ["dense", "regression", "key", "value", "query"]
+    elif mode== "dense":
+        target_modules = ["dense"]
+    elif mode == "regression":
+        target_modules = ["regression"]
+    elif mode == "key":
+        target_modules = ["key"]
+    elif mode == "value":
+        target_modules = ["value"]
+    elif mode == "query":
+        target_modules = ["query"]
+    else:
+        assert False, f"No mode {mode} found"
+
     config = LoraConfig(
         r=16,
         lora_alpha=32,
-        target_modules=["dense", "regression", "key", "value", "query"],
-        lora_dropout=0.05,
+        target_modules=target_modules,
+        lora_dropout=lora_dropout,
         # task_type="TOKEN_CLASSIFICATION"
     )
 
@@ -422,6 +437,7 @@ if __name__ == "__main__":
     parser.add_argument("--datapath", type=str, help="path to datafolder",
                         default="data/")
     parser.add_argument("--plm_checkpoint", default="8M")
+    parser.add_argument("--peft_mode", default="all", help="Mode for selective freezing")
     args = parser.parse_args()
 
     batch_size = args.bs
@@ -458,6 +474,9 @@ if __name__ == "__main__":
         elif args.plm_checkpoint == "650M":
             in_dim = 1280
             model_path = "facebook/esm2_t33_650M_UR50D"
+        elif args.plm_checkpoint == "3B":
+            in_dim = 2560
+            model_path = "facebook/esm2_t36_3B_UR50D"
         else:
             model_path = "facebook/esm2_t6_8M_UR50D"
             in_dim = 320
@@ -466,7 +485,7 @@ if __name__ == "__main__":
     else:
         assert False, f"Model type not implemented {model_type}"
 
-    model = apply_peft(model).to(device)
+    model = apply_peft(model, mode=args.peft_mode).to(device)
 
 
     ## Data loading

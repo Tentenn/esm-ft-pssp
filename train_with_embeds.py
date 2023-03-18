@@ -355,8 +355,10 @@ if __name__ == "__main__":
         in_dim = 320
     elif "t12_35M" in args.temb:
         in_dim = 480
-    elif "t30_650M" in args.temb:
+    elif "t33_650M" in args.temb:
         in_dim = 1280
+    elif "t36_3B" in args.temb:
+        in_dim = 2560
     else:
         assert False, "Wrong model type"
 
