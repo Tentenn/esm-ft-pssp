@@ -546,7 +546,7 @@ if __name__ == "__main__":
 
     ## Test data
     # Test loader
-    casp12_path = datapath + "casp12.jsonl"
+    """casp12_path = datapath + "casp12.jsonl"
     casp12_loader = get_dataloader(jsonl_path=casp12_path, batch_size=1, device=device, seed=seed,
                                    max_emb_size=5000, tokenizer=tokenizer)
 
@@ -564,5 +564,5 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load("model.pt"))
     model = model.to(device)
     print("new_pisces:", test(model, npis_loader, verbose=False))
-    print("casp12:", test(model, casp12_loader, verbose=False))
+    print("casp12:", test(model, casp12_loader, verbose=False))"""
 
