@@ -386,16 +386,16 @@ def apply_peft(model, mode="all", lora_dropout=0.05):
 
     if mode == "all":
         target_modules = ["dense", "regression", "key", "value", "query"]
-    elif mode== "dense":
-        target_modules = ["dense"]
-    elif mode == "regression":
-        target_modules = ["regression"]
-    elif mode == "key":
-        target_modules = ["key"]
-    elif mode == "value":
-        target_modules = ["value"]
-    elif mode == "query":
-        target_modules = ["query"]
+    elif mode == "dr":
+        target_modules = ["dense", "regression"]
+    elif mode == "rk":
+        target_modules = ["regression", "key"]
+    elif mode == "kv":
+        target_modules = ["key", "value"]
+    elif mode == "dq":
+        target_modules = ["dense", "query"]
+    elif mode == "rkv":
+        target_modules = ["regression", "key", "value"]
     else:
         assert False, f"No mode {mode} found"
 
