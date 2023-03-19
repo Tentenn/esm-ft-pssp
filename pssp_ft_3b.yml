@@ -48,5 +48,5 @@ properties:
     jobName: tang_esm2_finetuning_peft
 # command: bash hp_tests/mlm.sh
 # command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 8M --wdnote 8M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 35M --wdnote 35M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 150M --wdnote 150M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M
-# command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M-PEFT-LORA
-command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote PT-650M-0.79-650M-PEFT-LORA --peft_mode all --epochs 3 --bs 10 --pt_cnn /mnt/project/tang/models/0.796_0.32365581797964776_cnn.pt
+command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M-PEFT-LORA
+

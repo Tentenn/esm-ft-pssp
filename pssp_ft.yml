@@ -50,6 +50,7 @@ properties:
 # command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 8M --wdnote 8M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 35M --wdnote 35M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 150M --wdnote 150M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M
 # command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M-PEFT-LORA
 command:
-    echo 1 &&
-    echo 2 &&
-    echo 3
+    python pssp_finetune_manual.py --plm_checkpoint 650M --wdnote 650M --epochs 3 --bs 10 &&
+    python pssp_finetune_manual.py --plm_checkpoint 150M --wdnote 150M --epochs 3 --bs 10 &&
+    python pssp_finetune_manual.py --plm_checkpoint 35M --wdnote 35M --epochs 3 --bs 10 &&
+    python pssp_finetune_manual.py --plm_checkpoint 8M --wdnote 8M --epochs 3 --bs 10 &&
