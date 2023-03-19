@@ -437,6 +437,7 @@ def main():
             model_path = "facebook/esm2_t6_8M_UR50D"
             in_dim = 320
         model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path, pt_cnn=args.pt_cnn)
+        model = model.to(device)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
     else:
         assert False, f"Model type not implemented {model_type}"
