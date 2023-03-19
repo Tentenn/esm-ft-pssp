@@ -83,6 +83,7 @@ def main_training_loop(model: torch.nn.Module,
                        weight_decay: float,
                        loss_fn,
                        freeze_epoch: int,
+                       args,
                        device):
     if optimizer_name == "adam":
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -131,17 +132,19 @@ def main_training_loop(model: torch.nn.Module,
 
         # save model if better
         if q3_accuracy > best_accuracy:
-            print("model saved")
+
             best_accuracy = q3_accuracy
             # PATH = f"/home/ubuntu/instance1/datamodels/{batch_size}_{grad_accum}_{lr}_{epochs}_{round(q3_accuracy, 3)}_{round(t_loss, 3)}_cnn.pt"
-            PATH = "model.pt"
+            # PATH = "model.pt"
             # torch.save({
             #             'epoch': epoch,
             #             'model_state_dict': model.state_dict(),
             #             'optimizer_state_dict': optimizer.state_dict(),
             #             'loss': t_loss,
             #             }, PATH)
-            torch.save(model.state_dict(), PATH)
+
+            torch.save(model.state_dict(), model_out_path)
+            print(f"model saved at {model_out_path}")
 
         # freezes t5 language model
         if epoch == freeze_epoch:
@@ -274,7 +277,7 @@ def test(model: torch.nn.Module,
                 print(f"true label:\t", label[batch_idx])
                 print("accuracy:\t", acc)
                 print()
-
+    print(acc_scores)
     return sum(acc_scores) / len(acc_scores), np.std(acc_scores)
 
 
@@ -412,6 +415,96 @@ def apply_peft(model, mode="all", lora_dropout=0.05):
     # print("success")
     return model
 
+def main():
+    # Choose model
+    if model_type == "esm-cnn":
+        if args.plm_checkpoint == "8M":
+            model_path = "facebook/esm2_t6_8M_UR50D"
+            in_dim = 320
+        elif args.plm_checkpoint == "35M":
+            model_path = "facebook/esm2_t12_35M_UR50D"
+            in_dim = 480
+        elif args.plm_checkpoint == "150M":
+            model_path = "facebook/esm2_t30_150M_UR50D"
+            in_dim = 640
+        elif args.plm_checkpoint == "650M":
+            in_dim = 1280
+            model_path = "facebook/esm2_t33_650M_UR50D"
+        elif args.plm_checkpoint == "3B":
+            in_dim = 2560
+            model_path = "facebook/esm2_t36_3B_UR50D"
+        else:
+            model_path = "facebook/esm2_t6_8M_UR50D"
+            in_dim = 320
+        model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path, pt_cnn=args.pt_cnn)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+    else:
+        assert False, f"Model type not implemented {model_type}"
+
+    if args.peft_mode != "no":
+        model = apply_peft(model, mode=args.peft_mode).to(device)
+
+    ## Data loading
+    train_path = datapath + trainset
+    val_path = datapath + valset
+
+    train_loader = get_dataloader(jsonl_path=train_path,
+                                  batch_size=batch_size,
+                                  device=device, seed=42,
+                                  max_emb_size=max_emb_size, tokenizer=tokenizer,
+                                  masking=seq_mask)
+
+    val_loader = get_dataloader(jsonl_path=val_path,
+                                batch_size=1,
+                                device=device, seed=42,
+                                max_emb_size=2000, tokenizer=tokenizer)
+    print("Train size:", len(train_loader))
+    print("Val size:", len(val_loader))
+
+    # For testing and logging
+    train_data = train_loader
+    val_data = val_loader
+
+
+    # start training
+    gc.collect()
+    main_training_loop(model=model,
+                       train_data=train_data,
+                       val_data=val_data,
+                       device=device,
+                       batch_size=batch_size,
+                       lr=lr,
+                       epochs=epochs,
+                       grad_accum=grad_accum,
+                       optimizer_name=optimizer_name,
+                       loss_fn=loss_fn,
+                       weight_decay=weight_decay,
+                       freeze_epoch=freeze_epoch,
+                       args=args)
+
+    ## Test data
+    # Test loader
+    casp12_path = datapath + "casp12.jsonl"
+    casp12_loader = get_dataloader(jsonl_path=casp12_path, batch_size=1, device=device, seed=seed,
+                                   max_emb_size=5000, tokenizer=tokenizer)
+
+    npis_path = datapath + "new_pisces.jsonl"
+    npis_loader = get_dataloader(jsonl_path=npis_path, batch_size=1, device=device, seed=seed,
+                                 max_emb_size=5000, tokenizer=tokenizer)
+
+    ## Load model
+    if model_type == "esm-cnn":
+        model = ESM2PSSPModel(plm_cp=model_path, in_dim=in_dim).to(device)
+        # model = ESM2PSSPModel()
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+    else:
+        assert False, f"Model type not implemented {model_type}"
+
+    model.load_state_dict(torch.load(model_out_path))
+    model = model.to(device)
+    print("new_pisces:", test(model, npis_loader, verbose=False))
+    print("casp12:", test(model, casp12_loader, verbose=False))
+
 if __name__ == "__main__":
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     print("Using", device)
@@ -426,18 +519,19 @@ if __name__ == "__main__":
     parser.add_argument("--model_type", type=str, default="esm-cnn")
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--trainset", type=str, default="train_cut256.jsonl")
-    parser.add_argument("--valset", type=str, default="val_filter_no_1000.jsonl")
-    parser.add_argument("--wdnote", type=str)
+    parser.add_argument("--trainset", type=str, default="10seqs.jsonl")
+    parser.add_argument("--valset", type=str, default="10seqs.jsonl")
+    parser.add_argument("--wdnote", type=str, default="wdnote")
     parser.add_argument("--trainable", type=int, default=24)
     parser.add_argument("--pn", type=str, default="esm_finetune_manual")
     parser.add_argument("--wd", type=float, default=0.01)
     parser.add_argument("--fr", type=int, help="freezes t5 after epoch i", default=10)
     parser.add_argument("--msk", type=float, help="randomly mask the sequence", default=0)
-    parser.add_argument("--datapath", type=str, help="path to datafolder",
-                        default="data/")
+    parser.add_argument("--datapath", type=str, help="path to datafolder", default="data/")
     parser.add_argument("--plm_checkpoint", default="8M")
-    parser.add_argument("--peft_mode", default="all", help="Mode for selective freezing")
+    parser.add_argument("--peft_mode", default="no", help="Mode for selective freezing")
+    parser.add_argument("--pt_cnn")
+    parser.add_argument("--model_out", default="models/")
     args = parser.parse_args()
 
     batch_size = args.bs
@@ -460,54 +554,6 @@ if __name__ == "__main__":
     seq_mask = args.msk
     datapath = args.datapath
 
-    # Choose model
-    if model_type == "esm-cnn":
-        if args.plm_checkpoint == "8M":
-            model_path = "facebook/esm2_t6_8M_UR50D"
-            in_dim = 320
-        elif args.plm_checkpoint == "35M":
-            model_path = "facebook/esm2_t12_35M_UR50D"
-            in_dim = 480
-        elif args.plm_checkpoint == "150M":
-            model_path = "facebook/esm2_t30_150M_UR50D"
-            in_dim = 640
-        elif args.plm_checkpoint == "650M":
-            in_dim = 1280
-            model_path = "facebook/esm2_t33_650M_UR50D"
-        elif args.plm_checkpoint == "3B":
-            in_dim = 2560
-            model_path = "facebook/esm2_t36_3B_UR50D"
-        else:
-            model_path = "facebook/esm2_t6_8M_UR50D"
-            in_dim = 320
-        model = ESM2PSSPModel(in_dim=in_dim, plm_cp=model_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-    else:
-        assert False, f"Model type not implemented {model_type}"
-
-    model = apply_peft(model, mode=args.peft_mode).to(device)
-
-
-    ## Data loading
-    train_path = datapath + trainset
-    val_path = datapath + valset
-
-    train_loader = get_dataloader(jsonl_path=train_path,
-                                  batch_size=batch_size,
-                                  device=device, seed=42,
-                                  max_emb_size=max_emb_size, tokenizer=tokenizer,
-                                  masking=seq_mask)
-
-    val_loader = get_dataloader(jsonl_path=val_path,
-                                batch_size=1,
-                                device=device, seed=42,
-                                max_emb_size=2000, tokenizer=tokenizer)
-
-
-    # For testing and logging
-    train_data = train_loader
-    val_data = val_loader
-
     # wandb logging
     config = {"lr": str(lr).replace("0.", ""),
               "epochs": epochs,
@@ -520,49 +566,13 @@ if __name__ == "__main__":
               "dropout": dropout,
               "trainset": trainset,
               "valset": valset,
-              "train_size": len(train_data),
-              "val_size": len(val_data),
               "sequence_mask": seq_mask,
               "wandb_note": wandb_note,
               "number of trainable layers (freezing)": trainable,
               }
-    experiment_name = f"{model_type}-{batch_size}_{lr}_{epochs}_{grad_accum}_{max_emb_size}_{wandb_note}"
+    experiment_name = f"{wandb_note}-{random.randint(1000,9999)}-{model_type}-{batch_size}_{lr}_{epochs}_{max_emb_size}"
     wandb.init(project=project_name, entity="kyttang", config=config, name=experiment_name)
 
-    # start training
-    gc.collect()
-    main_training_loop(model=model,
-                       train_data=train_data,
-                       val_data=val_data,
-                       device=device,
-                       batch_size=batch_size,
-                       lr=lr,
-                       epochs=epochs,
-                       grad_accum=grad_accum,
-                       optimizer_name=optimizer_name,
-                       loss_fn=loss_fn,
-                       weight_decay=weight_decay,
-                       freeze_epoch=freeze_epoch)
-
-    ## Test data
-    # Test loader
-    """casp12_path = datapath + "casp12.jsonl"
-    casp12_loader = get_dataloader(jsonl_path=casp12_path, batch_size=1, device=device, seed=seed,
-                                   max_emb_size=5000, tokenizer=tokenizer)
-
-    npis_path = datapath + "new_pisces.jsonl"
-    npis_loader = get_dataloader(jsonl_path=npis_path, batch_size=1, device=device, seed=seed,
-                                 max_emb_size=5000, tokenizer=tokenizer)
-
-    ## Load model
-    if model_type == "esm-cnn":
-        model = ESM2PSSPModel(plm_cp=model_path, in_dim=in_dim).to(device)
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-    else:
-        assert False, f"Model type not implemented {model_type}"
-
-    model.load_state_dict(torch.load("model.pt"))
-    model = model.to(device)
-    print("new_pisces:", test(model, npis_loader, verbose=False))
-    print("casp12:", test(model, casp12_loader, verbose=False))"""
+    model_out_path = args.model_out+experiment_name+"_model.pt"
+    main()
 
