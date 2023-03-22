@@ -509,6 +509,7 @@ def main():
 if __name__ == "__main__":
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     print("Using", device)
+    # TODO: Make name incorparate underlying model
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--bs", type=int, default=10)
@@ -571,7 +572,7 @@ if __name__ == "__main__":
               "wandb_note": wandb_note,
               "number of trainable layers (freezing)": trainable,
               }
-    experiment_name = f"{wandb_note}-{random.randint(1000,9999)}-{model_type}-{batch_size}_{lr}_{epochs}_{max_emb_size}"
+    experiment_name = f"{wandb_note}-{args.esm_checkpoint}-{random.randint(1000,9999)}-{model_type}-{batch_size}_{lr}_{epochs}_{max_emb_size}"
     wandb.init(project=project_name, entity="kyttang", config=config, name=experiment_name)
 
     model_out_path = args.model_out+experiment_name+"_model.pt"

@@ -117,14 +117,7 @@ def main_training_loop(model: torch.nn.Module,
                        args):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    # wandb logging
-    config = {"learning_rate": args.lr,
-              "epochs": args.epochs,
-              "batch_size": args.bs,
-              "optimizer": optimizer}
 
-    exp_name = f"{args.wname}_{random.randint(300, 999)}_lr={args.lr}_ep={args.epochs}_bs={args.bs}"
-    wandb.init(project=args.pname, entity="kyttang", config=config, name=exp_name)
     # track best scores
     best_accuracy = float('-inf')
     best_loss = float('-inf')
@@ -142,7 +135,8 @@ def main_training_loop(model: torch.nn.Module,
         # save model if better
         if q3_accuracy > best_accuracy:
             best_accuracy = q3_accuracy
-            PATH = f"/mnt/project/tang/models/{round(q3_accuracy, 3)}_{t_loss}_cnn.pt"
+            PATH = f"{args.model_out_dir}{round(q3_accuracy, 3)}_{t_loss}_cnn.pt"
+            PATH = f"{args.model_out_dir}{exp_name}_cnn.pt"
             torch.save(model.state_dict(), PATH)
             # print("[DEV] Not saving models")
 
@@ -164,7 +158,7 @@ def train(model: torch.nn.Module,
         emb, label, mask = batch
         optimizer.zero_grad()
         emb = emb.to(device)
-        print(emb.shape)
+        # print(emb.shape)
         out = model(emb)  # shape: [bs, max_seq_len, 3]
 
         # string to float conversion, padding and mask labels
@@ -265,7 +259,7 @@ def test(model: torch.nn.Module,
     for i, batch in enumerate(test_data):
         emb, label, mask = batch
         out = model(emb)
-        print(out.shape)
+        # print(out.shape)
         for batch_idx, out_logits in enumerate(out):
             # Calculate scores for each sequence individually
             # And average over them
@@ -313,7 +307,20 @@ if __name__ == "__main__":
     parser.add_argument("--wname", type=str, help="name of run", default="esm_embeds")
     parser.add_argument("--train_labels", type=str, help="jsonl file", default="data/train.jsonl")
     parser.add_argument("--val_labels", type=str, help="jsonl file", default="data/val.jsonl")
+    parser.add_argument("--casp12_embeds")
+    parser.add_argument("--new_pisces_embeds")
+    parser.add_argument("--model_out_dir", default="/mnt/project/tang/models/")
+    parser.add_argument("--casp12_labels", default="data/caap12.jsonl")
+    parser.add_argument("--new_pisces_labels", default="data/new_pisces.jsonl")
+
     args = parser.parse_args()
+
+    ## wandb init
+    # wandb logging
+    config = args.__dict__
+
+    exp_name = f"{args.wname}_embonly_{random.randint(300, 999)}_lr={args.lr}_ep={args.epochs}_bs={args.bs}"
+    wandb.init(project=args.pname, entity="kyttang", config=config, name=exp_name)
 
     ## Determine device
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -331,7 +338,7 @@ if __name__ == "__main__":
 
     ## Check if embeddings available
     if not os.path.isfile(args.temb):
-        # Create embeddings file
+        # Create embeddings
         assert False, "No file found"
 
 
@@ -342,12 +349,6 @@ if __name__ == "__main__":
     val_loader = get_dataloader(embed_path=args.vemb,
                                 labels_path=val_labels_path, batch_size=args.bs, device=device, seed=42)
 
-    ### Test loader
-    # test_embeds_path = "/content/drive/MyDrive/BachelorThesis/data/new_pisces.jsonl_embeddings.h5"
-    # test_labels_path = "data/new_pisces.jsonl"
-    # test_loader = get_dataloader(embed_path=test_embeds_path,
-    #   labels_path=test_labels_path, batch_size=4, device=device, seed=42)
-    ###
 
     ## Load model
     print("load Model")
@@ -355,6 +356,8 @@ if __name__ == "__main__":
         in_dim = 320
     elif "t12_35M" in args.temb:
         in_dim = 480
+    elif "t30_150M" in args.temb:
+        in_dim = 640
     elif "t33_650M" in args.temb:
         in_dim = 1280
     elif "t36_3B" in args.temb:
@@ -369,4 +372,28 @@ if __name__ == "__main__":
     print("start Training")
     main_training_loop(model=cnn, train_data=train_loader, val_data=val_loader, device=device, args=args)
 
-    ##
+    ## Testing
+    # Load in test datasets
+    # Generate embeddings for each model for each datasets
+    # In total: 8M,35M,150M,650M,3B x 2 = 10 embeddings
+    # TODO: Test out pipeline with small embeddings and run
+    if args.casp12_embeds != None:
+        casp12 = get_dataloader(args.casp12_embeds, labels_path=args.casp12_labels, batch_size=1, device=device, seed=42)
+    else:
+        assert False, "casp12 embeds not found"
+
+    if args.new_pisces_embeds != None:
+        new_pisces = get_dataloader(args.new_pisces_embeds, labels_path=args.new_pisces_labels, batch_size=1, device=device, seed=42)
+    else:
+        assert False, "new pisces embeds not found"
+
+    test_model = ConvNet(in_size=in_dim)
+    test_model.load_state_dict(torch.load(f"{args.model_out_dir}{exp_name}_cnn.pt"))
+    test_model.to(device)
+
+    # test pipeline
+    print("casp12:", test(test_model, casp12, verbose=True))
+    print("new_pisces:", test(test_model, new_pisces, verbose=True))
+
+    print("finished run sucessfully!")
+

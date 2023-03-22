@@ -34,6 +34,8 @@ elif model_used == "150M":
     model_checkpoint = "facebook/esm2_t30_150M_UR50D"
 elif model_used == "650M":
     model_checkpoint = "facebook/esm2_t33_650M_UR50D"
+elif model_used == "3B":
+    model_checkpoint = "facebook/esm2_t36_3B_UR50D"
 else:
     assert False, "Please specify model used in 4th argument"
 
