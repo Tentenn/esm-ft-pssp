@@ -410,8 +410,8 @@ if __name__ == "__main__":
     test_model.to(device)
 
     # test pipeline
-    print("casp12:", test(test_model, casp12, verbose=True))
-    print("new_pisces:", test(test_model, new_pisces, verbose=True))
+    print("casp12:", test(test_model, casp12, verbose=False))
+    print("new_pisces:", test(test_model, new_pisces, verbose=False))
 
     print("finished run sucessfully!")
 
