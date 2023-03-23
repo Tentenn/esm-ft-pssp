@@ -259,8 +259,6 @@ def test(model: torch.nn.Module,
     for i, batch in enumerate(test_data):
         emb, label, mask = batch
         emb = emb.to(device)
-        label = label.to(device)
-        mask = mask.to(device)
         out = model(emb).to(device)
         # print(out.shape)
         for batch_idx, out_logits in enumerate(out):
