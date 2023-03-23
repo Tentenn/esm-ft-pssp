@@ -49,20 +49,21 @@ properties:
 # command: bash hp_tests/mlm.sh
 # command: python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 8M --wdnote 8M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 35M --wdnote 35M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 150M --wdnote 150M && python pssp_finetune_manual.py --datapath /mnt/project/tang/esm-ft-pssp/data/ --plm_checkpoint 650M --wdnote 650M
 # command: python pssp_finetune_manual.py --epochs 16 --bs 1 --plm_checkpoint 3B --wdnote 3B-PEFT-no-1000-10ep --peft_mode all --trainset train.jsonl
-'''command:
-    python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 8M &&
-    python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 8M &&
-    python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 35M &&
-    python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 35M &&
-    python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 150M &&
-    python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 150M &&
-    python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 650M &&
-    python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 650M &&
-    python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 3B &&
-    python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 3B'''
 command:
     python make_esm_embeddings.py data/train.jsonl -1 data/embeddings 150M &&
     python make_esm_embeddings.py data/val.jsonl -1 data/embeddings 150M
+#command:
+    #python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 8M &&
+    #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 8M &&
+    #python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 35M &&
+    #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 35M &&
+    #python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 150M &&
+    #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 150M &&
+    #python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 650M &&
+    #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 650M &&
+    #python make_esm_embeddings.py data/casp12.jsonl -1 data/embeddings 3B &&
+    #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 3B
+
 
 # tra-in
 # t6_8M
