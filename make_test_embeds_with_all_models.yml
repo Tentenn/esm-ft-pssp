@@ -65,7 +65,7 @@ command:
     #python make_esm_embeddings.py data/new_pisces.jsonl -1 data/embeddings 3B
 
 
-# tra-in
+# train
 # t6_8M
 # python --lmt esm --epochs 16 --bs 40 --temb data/embeddings/train_cut256_esm2_t6_8M_UR50D_embeddings.h5 --vemb data/embeddings/val_no1000_esm2_t6_8M_UR50D_embeddings.h5 --casp12_embeds data/embeddings/10seqs_esm2_t6_8M_UR50D_embeddings.h5 --new_pisces_embeds data/embeddings/10seqs_esm2_t6_8M_UR50D_embeddings.h5 --train_labels data/10seqs.jsonl --val_labels data/10seqs.jsonl --model_out_dir models/ --casp12_labels data/casp12.jsonl --new_pisces_labels data/new_pisces.jsonl
 # t
