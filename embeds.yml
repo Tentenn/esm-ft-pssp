@@ -4,9 +4,9 @@ io:
     outputOverwriteFile: stdout.log
     errorOverwriteFile: stderr.log
 limit:
-    coreLimit: 8
+    coreLimit: 16
     # in hh:mm
-    runtimeLimit: 600:00
+    runtimeLimit: 2400:00
     # Limit the execution to 8GB of CPU RAM
     memLimit: 64G!
 resource:
@@ -15,10 +15,10 @@ resource:
     # IMPORTANT: limits are not strictly enforced
     # make sure you allocate as much as you will maximally need!
     # Failing to do so may result in your or someone elses job failing.
-    gpu: num=1/task:mode=shared:gmem=42G:j_exclusive=no:gpack=yes
+    # gpu: num=1/task:mode=shared:gmem=42G:j_exclusive=no:gpack=yes
     # If job>43GB, ask for exclusive GPU use
     # this MUST be limited to 2 exclusive use jobs per user!
-    # gpu: num=1:mode=exclusive_process:gmem=47G:j_exclusive=yes
+    gpu: num=1:mode=exclusive_process:gmem=47G:j_exclusive=yes
 
     # Which machine to use:
     #  - lsf-server-2 = CD/big
