@@ -283,8 +283,13 @@ def test(model: torch.nn.Module,
                 print(f"prediction:\t", preds_to_seq(preds))
                 print(f"true label:\t", label[batch_idx])
                 print()
+    try:
+        scr = sum(acc_scores) / len(acc_scores), np.std(acc_scores)
+    except ZeroDivisionError:
+        print("ZeroDivisionError raised, setting acc to 0")
+        scr = 0
 
-    return sum(acc_scores) / len(acc_scores), np.std(acc_scores)
+    return scr
 
 
 def preds_to_seq(preds):
