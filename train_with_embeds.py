@@ -270,7 +270,7 @@ def test(model: torch.nn.Module,
             seqlen = len(label[batch_idx]) if len(label[batch_idx]) < 1022 else 1022
             # print(out_logits)
             preds = logits_to_preds(out_logits[:seqlen])  # already in form: [0, 1, 2, 3]
-            true_label = label_to_id(label[batch_idx])  # convert label to machine readable.
+            true_label = label_to_id(label[batch_idx])[:seqlen]  # convert label to machine readable.
             res_mask = mask[batch_idx][:seqlen]  # [:seqlen] to cut the padding
 
             assert seqlen == len(preds) == len(res_mask), "length of seqs not matching"
