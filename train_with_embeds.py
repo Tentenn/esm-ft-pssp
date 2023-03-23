@@ -274,8 +274,11 @@ def test(model: torch.nn.Module,
             res_mask = mask[batch_idx][:seqlen]  # [:seqlen] to cut the padding
 
             assert seqlen == len(preds) == len(res_mask), "length of seqs not matching"
-
-            acc = q3_acc(true_label, preds, res_mask)
+            try:
+                acc = q3_acc(true_label, preds, res_mask)
+            except ZeroDivisionError:
+                print("ZeroDivisionError raised, setting acc to 0")
+                acc = 0
 
             acc_scores.append(acc)
 
