@@ -261,11 +261,13 @@ def test(model: torch.nn.Module,
         emb = emb.to(device)
         out = model(emb).to(device)
         # print(out.shape)
+
+
         for batch_idx, out_logits in enumerate(out):
             # Calculate scores for each sequence individually
             # And average over them
 
-            seqlen = len(label[batch_idx])
+            seqlen = len(label[batch_idx]) if len(label[batch_idx]) < 1022 else 1022
             # print(out_logits)
             preds = logits_to_preds(out_logits[:seqlen])  # already in form: [0, 1, 2, 3]
             true_label = label_to_id(label[batch_idx])  # convert label to machine readable.
