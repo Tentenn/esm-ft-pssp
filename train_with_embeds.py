@@ -258,7 +258,10 @@ def test(model: torch.nn.Module,
     acc_scores = []
     for i, batch in enumerate(test_data):
         emb, label, mask = batch
-        out = model(emb)
+        emb = emb.to(device)
+        label = label.to(device)
+        mask = mask.to(device)
+        out = model(emb).to(device)
         # print(out.shape)
         for batch_idx, out_logits in enumerate(out):
             # Calculate scores for each sequence individually
