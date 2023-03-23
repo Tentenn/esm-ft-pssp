@@ -319,8 +319,7 @@ if __name__ == "__main__":
     # wandb logging
     config = args.__dict__
 
-    exp_name = f"{args.wname}_embonly_{random.randint(300, 999)}_lr={args.lr}_ep={args.epochs}_bs={args.bs}"
-    wandb.init(project=args.pname, entity="kyttang", config=config, name=exp_name)
+
 
     ## Determine device
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -354,16 +353,24 @@ if __name__ == "__main__":
     print("load Model")
     if "t6_8M" in args.temb:
         in_dim = 320
+        model_type = "8M"
     elif "t12_35M" in args.temb:
         in_dim = 480
+        model_type = "35M"
     elif "t30_150M" in args.temb:
         in_dim = 640
+        model_type = "150M"
     elif "t33_650M" in args.temb:
         in_dim = 1280
+        model_type = "650M"
     elif "t36_3B" in args.temb:
         in_dim = 2560
+        model_type = "3B"
     else:
         assert False, "Wrong model type"
+
+    exp_name = f"{model_type}_{args.wname}_embonly_{random.randint(300, 999)}_lr={args.lr}_ep={args.epochs}_bs={args.bs}"
+    wandb.init(project=args.pname, entity="kyttang", config=config, name=exp_name)
 
     cnn = ConvNet(in_size=in_dim)
     cnn = cnn.to(device)
